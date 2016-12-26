@@ -90,5 +90,6 @@ def run(url, cmd, log_path, log_level, log_session, force_discovery, print_info)
         conn.disconnect()
     return
 
+
 if __name__ == '__main__':
     run()
