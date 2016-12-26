@@ -1,0 +1,17 @@
+protocol:
+  telnet:
+    first_prompt_timeout: 20
+    esc_char_timeout: 20
+    connect_timeout: 180
+
+  ssh:
+    # Wait until first prompt comes up
+    first_prompt_timeout: 30
+    # SSH -o ConnectTimeout value (30) - not supported on SunOS
+    connect_timeout: 120
+
+driver:
+  eXR:
+    # Wait for the term len when executing admin/calvados mode commands. This is required to determine
+    # whether the 'admin' command was send or 'admin .....' where the output of the command must be captured.
+    calvados_term_wait_time: 2

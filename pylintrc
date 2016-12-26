@@ -1,0 +1,44 @@
+[MASTER]
+reports=no
+max-line-length = 120
+
+# Reasons disabled:
+
+# logging-format-interpolation - it does not impact logging which is mostly for debugging purpose
+
+# locally-disabled - it spams too much
+# duplicate-code - unavoidable
+# cyclic-import - doesn't test if both import on load
+# abstract-class-little-used - prevents from setting right foundation
+# abstract-class-not-used - is flaky, should not show up but does
+# unused-argument - generic callbacks and setup methods create a lot of warnings
+# global-statement - used for the on-demand requirement installation
+# redefined-variable-type - this is Python, we're duck typing!
+# too-many-* - are not enforced for the sake of readability
+# too-few-* - same as too-many-*
+
+disable=
+  # line-too-long,
+  # locally-disabled,
+
+  logging-format-interpolation,
+  duplicate-code,
+
+  cyclic-import,
+
+  abstract-class-little-used,
+  abstract-class-not-used,
+  unused-argument,
+  global-statement,
+  redefined-variable-type,
+  too-many-arguments,
+  too-many-branches,
+  too-many-instance-attributes,
+  too-many-locals,
+  too-many-public-methods,
+  too-many-return-statements,
+  too-many-statements,
+  too-few-public-methods,
+
+[EXCEPTIONS]
+overgeneral-exceptions=Exception

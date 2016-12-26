@@ -1,0 +1,636 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Core condoor components &mdash; condoor 1.0.0-alpha1 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+        <link rel="index" title="Index"
+              href="../genindex.html"/>
+        <link rel="search" title="Search" href="../search.html"/>
+    <link rel="top" title="condoor 1.0.0-alpha1 documentation" href="../index.html"/>
+        <link rel="up" title="API documentation" href="index.html"/>
+        <link rel="next" title="Exceptions" href="exceptions.html"/>
+        <link rel="prev" title="API documentation" href="index.html"/> 
+
+  
+  <script src="../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> condoor
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../overview.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../install.html">Installation</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">API documentation</a><ul class="current">
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Core condoor components</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#connection-class">Connection class</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="exceptions.html">Exceptions</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../examples.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../FAQ.html">Frequently Asked Questions</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../index.html">condoor</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+ 
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="index.html">API documentation</a> &raquo;</li>
+      
+    <li>Core condoor components</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="../_sources/api/condoor.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="module-condoor">
+<span id="core-condoor-components"></span><h1>Core condoor components<a class="headerlink" href="#module-condoor" title="Permalink to this headline">¶</a></h1>
+<p>Init file for condoor.</p>
+<div class="section" id="connection-class">
+<h2>Connection class<a class="headerlink" href="#connection-class" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="condoor.Connection">
+<em class="property">class </em><code class="descname">Connection</code><span class="sig-paren">(</span><em>name</em>, <em>urls=[]</em>, <em>log_dir=None</em>, <em>log_level=10</em>, <em>log_session=True</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/condoor/connection.html#Connection"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#condoor.Connection" title="Permalink to this definition">¶</a></dt>
+<dd><p>Connection class providing the condoor API.</p>
+<p>Main API class providing the basic API to the physical devices.
+It implements the following methods:</p>
+<blockquote>
+<div><ul class="simple">
+<li>connect</li>
+<li>reconnect</li>
+<li>disconnect</li>
+<li>send</li>
+<li>reload</li>
+<li>enable</li>
+<li>run_fsm</li>
+</ul>
+</div></blockquote>
+<dl class="method">
+<dt id="condoor.Connection.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>name</em>, <em>urls=[]</em>, <em>log_dir=None</em>, <em>log_level=10</em>, <em>log_session=True</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/condoor/connection.html#Connection.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#condoor.Connection.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initialize the <a class="reference internal" href="#condoor.Connection" title="condoor.Connection"><code class="xref py py-class docutils literal"><span class="pre">condoor.Connection</span></code></a> object.</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd><p class="first">name (str): The connection name.</p>
+<dl class="docutils">
+<dt>urls (str or list): This argument may be a string or list of strings or list of list of strings.</dt>
+<dd><p class="first">When <strong>urls</strong> type is string it must be valid URL in the following format:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">urls</span> <span class="o">=</span> <span class="s2">&quot;&lt;protocol&gt;://&lt;user&gt;:&lt;password&gt;@&lt;host&gt;:&lt;port&gt;/&lt;enable_password&gt;</span>
+</pre></div>
+</div>
+<p>Example:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">urls</span> <span class="o">=</span> <span class="s2">&quot;telnet://cisco:cisco@192.168.1.1&quot;</span>
+</pre></div>
+</div>
+<p>The <em>&lt;port&gt;</em> can be omitted and default port for protocol will be used.
+When <strong>urls</strong> type is list of strings it can provide multiple intermediate hosts (jumphosts) with
+their credentials before making the final connection the target device. Example:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">urls</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;ssh://admin:secretpass@jumphost&quot;</span><span class="p">,</span> <span class="s2">&quot;telnet://cisco:cisco@192.168.1.1&quot;</span><span class="p">]</span>
+
+<span class="n">urls</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;ssh://admin:pass@jumphost1&quot;</span><span class="p">,</span> <span class="s2">&quot;ssh://admin:pass@jumphost2&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;telnet://cisco:cisco@192.168.1.1&quot;</span><span class="p">]</span>
+</pre></div>
+</div>
+<p>The <strong>urls</strong> can be list of list of strings. In this case the multiple connection chains can be provided
+to the target device. This is used when device has two processor cards with console connected to
+both of them. Example:</p>
+<div class="last highlight-default"><div class="highlight"><pre><span></span><span class="n">urls</span> <span class="o">=</span> <span class="p">[[</span><span class="s2">&quot;ssh://admin:pass@jumphost1&quot;</span><span class="p">,</span> <span class="s2">&quot;telnet://cisco:cisco@termserv:2001&quot;</span><span class="p">],</span>
+        <span class="p">[</span><span class="s2">&quot;ssh://admin:pass@jumphost1&quot;</span><span class="p">,</span> <span class="s2">&quot;telnet://cisco:cisco@termserv:2002&quot;</span><span class="p">]]</span>
+</pre></div>
+</div>
+</dd>
+<dt>log_dir (str): The path to the directory when <em>session.log</em> and <em>condoor.log</em> is stored. If <em>None</em></dt>
+<dd>the condoor log and session log is redirected to <em>stdout</em></dd>
+</dl>
+<p>log_level (int): The condoor logging level.</p>
+<p class="last">log_session (Bool): If <strong>True</strong> the terminal session is logged.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="condoor.Connection.connect">
+<code class="descname">connect</code><span class="sig-paren">(</span><em>logfile=None</em>, <em>force_discovery=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/condoor/connection.html#Connection.connect"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#condoor.Connection.connect" title="Permalink to this definition">¶</a></dt>
+<dd><p>Connect to the device.</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd><dl class="first docutils">
+<dt>logfile (file): Optional file descriptor for session logging. The file must be open for write.</dt>
+<dd>The session is logged only if <code class="docutils literal"><span class="pre">log_session=True</span></code> was passed to the constructor.
+If <em>None</em> then the default <em>session.log</em> file is created in <cite>log_dir</cite>.</dd>
+</dl>
+<p class="last">force_discovery (Bool): Optional. If True the device discover process will start after getting connected.</p>
+</dd>
+<dt>Raises:</dt>
+<dd><dl class="first docutils">
+<dt>ConnectionError: If the discovery method was not called first or there was a problem with getting</dt>
+<dd>the connection.</dd>
+</dl>
+<p>ConnectionAuthenticationError: If the authentication failed.</p>
+<p class="last">ConnectionTimeoutError: If the connection timeout happened.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="condoor.Connection.reconnect">
+<code class="descname">reconnect</code><span class="sig-paren">(</span><em>logfile=None</em>, <em>max_timeout=360</em>, <em>force_discovery=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/condoor/connection.html#Connection.reconnect"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#condoor.Connection.reconnect" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reconnect to the device.</p>
+<p>It can be called when after device reloads or the session was
+disconnected either by device or jumphost. If multiple jumphosts are used then <cite>reconnect</cite> starts from
+the last valid connection.</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd><dl class="first docutils">
+<dt>logfile (file): Optional file descriptor for session logging. The file must be open for write.</dt>
+<dd>The session is logged only if <code class="docutils literal"><span class="pre">log_session=True</span></code> was passed to the constructor.
+It the parameter is not passed then the default <em>session.log</em> file is created in <cite>log_dir</cite>.</dd>
+<dt>max_timeout (int): This is the maximum amount of time during the session tries to reconnect. It may take</dt>
+<dd>longer depending on the TELNET or SSH default timeout.</dd>
+</dl>
+<p class="last">force_discovery (Bool): Optional. If True the device discover process will start after getting connected.</p>
+</dd>
+<dt>Raises:</dt>
+<dd><dl class="first docutils">
+<dt>ConnectionError: If the discovery method was not called first or there was a problem with getting</dt>
+<dd>the connection.</dd>
+</dl>
+<p>ConnectionAuthenticationError: If the authentication failed.</p>
+<p class="last">ConnectionTimeoutError: If the connection timeout happened.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="condoor.Connection.disconnect">
+<code class="descname">disconnect</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/condoor/connection.html#Connection.disconnect"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#condoor.Connection.disconnect" title="Permalink to this definition">¶</a></dt>
+<dd><p>Disconnect the session from the device and all the jumphosts in the path.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="condoor.Connection.reload">
+<code class="descname">reload</code><span class="sig-paren">(</span><em>reload_timeout=300</em>, <em>save_config=True</em>, <em>no_reload_cmd=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/condoor/connection.html#Connection.reload"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#condoor.Connection.reload" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reload the device and wait for device to boot up.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="condoor.Connection.send">
+<code class="descname">send</code><span class="sig-paren">(</span><em>cmd=''</em>, <em>timeout=60</em>, <em>wait_for_string=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/condoor/connection.html#Connection.send"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#condoor.Connection.send" title="Permalink to this definition">¶</a></dt>
+<dd><p>Send the command to the device and return the output.</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd><p class="first">cmd (str): Command string for execution. Defaults to empty string.
+timeout (int): Timeout in seconds. Defaults to 60s
+wait_for_string (str): This is optional string that driver</p>
+<blockquote class="last">
+<div>waits for after command execution. If none the detected
+prompt will be used.</div></blockquote>
+</dd>
+<dt>Returns:</dt>
+<dd>A string containing the command output.</dd>
+<dt>Raises:</dt>
+<dd>ConnectionError: General connection error during command execution
+CommandSyntaxError: Command syntax error or unknown command.
+CommandTimeoutError: Timeout during command execution</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="condoor.Connection.enable">
+<code class="descname">enable</code><span class="sig-paren">(</span><em>enable_password=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/condoor/connection.html#Connection.enable"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#condoor.Connection.enable" title="Permalink to this definition">¶</a></dt>
+<dd><p>Change the device mode to privileged.</p>
+<p>If device does not support privileged mode the the informational message to the log will be posted.</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd><dl class="first last docutils">
+<dt>enable_password (str): The privileged mode password. This is optional parameter. If password is not</dt>
+<dd>provided but required the password from url will be used. Refer to <a class="reference internal" href="#condoor.Connection" title="condoor.Connection"><code class="xref py py-class docutils literal"><span class="pre">condoor.Connection</span></code></a></dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="condoor.Connection.run_fsm">
+<code class="descname">run_fsm</code><span class="sig-paren">(</span><em>name</em>, <em>command</em>, <em>events</em>, <em>transitions</em>, <em>timeout</em>, <em>max_transitions=20</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/condoor/connection.html#Connection.run_fsm"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#condoor.Connection.run_fsm" title="Permalink to this definition">¶</a></dt>
+<dd><p>Instantiate and run the Finite State Machine for the current device connection.</p>
+<p>Here is the example of usage:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">test_dir</span> <span class="o">=</span> <span class="s2">&quot;rw_test&quot;</span>
+<span class="nb">dir</span> <span class="o">=</span> <span class="s2">&quot;disk0:&quot;</span> <span class="o">+</span> <span class="n">test_dir</span>
+<span class="n">REMOVE_DIR</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="n">re</span><span class="o">.</span><span class="n">escape</span><span class="p">(</span><span class="s2">&quot;Remove directory filename [</span><span class="si">{}</span><span class="s2">]?&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">test_dir</span><span class="p">)))</span>
+<span class="n">DELETE_CONFIRM</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="n">re</span><span class="o">.</span><span class="n">escape</span><span class="p">(</span><span class="s2">&quot;Delete </span><span class="si">{}</span><span class="s2">/</span><span class="si">{}</span><span class="s2">[confirm]&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">filesystem</span><span class="p">,</span> <span class="n">test_dir</span><span class="p">)))</span>
+<span class="n">REMOVE_ERROR</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="n">re</span><span class="o">.</span><span class="n">escape</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%E</span><span class="s2">rror Removing dir </span><span class="si">{}</span><span class="s2"> (Directory doesnot exist)&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">test_dir</span><span class="p">)))</span>
+
+<span class="n">command</span> <span class="o">=</span> <span class="s2">&quot;rmdir </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">dir</span><span class="p">)</span>
+<span class="n">events</span> <span class="o">=</span> <span class="p">[</span><span class="n">device</span><span class="o">.</span><span class="n">prompt</span><span class="p">,</span> <span class="n">REMOVE_DIR</span><span class="p">,</span> <span class="n">DELETE_CONFIRM</span><span class="p">,</span> <span class="n">REMOVE_ERROR</span><span class="p">,</span> <span class="n">pexpect</span><span class="o">.</span><span class="n">TIMEOUT</span><span class="p">]</span>
+<span class="n">transitions</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="p">(</span><span class="n">REMOVE_DIR</span><span class="p">,</span> <span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="mi">1</span><span class="p">,</span> <span class="n">send_newline</span><span class="p">,</span> <span class="mi">5</span><span class="p">),</span>
+    <span class="p">(</span><span class="n">DELETE_CONFIRM</span><span class="p">,</span> <span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="mi">2</span><span class="p">,</span> <span class="n">send_newline</span><span class="p">,</span> <span class="mi">5</span><span class="p">),</span>
+    <span class="c1"># if dir does not exist initially it&#39;s ok</span>
+    <span class="p">(</span><span class="n">REMOVE_ERROR</span><span class="p">,</span> <span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="mi">2</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span>
+    <span class="p">(</span><span class="n">device</span><span class="o">.</span><span class="n">prompt</span><span class="p">,</span> <span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span>
+    <span class="p">(</span><span class="n">pexpect</span><span class="o">.</span><span class="n">TIMEOUT</span><span class="p">,</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">error</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+
+<span class="p">]</span>
+<span class="k">if</span> <span class="ow">not</span> <span class="n">conn</span><span class="o">.</span><span class="n">run_fsm</span><span class="p">(</span><span class="s2">&quot;DELETE_DIR&quot;</span><span class="p">,</span> <span class="n">command</span><span class="p">,</span> <span class="n">events</span><span class="p">,</span> <span class="n">transitions</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="mi">5</span><span class="p">):</span>
+    <span class="k">return</span> <span class="kc">False</span>
+</pre></div>
+</div>
+<p>This FSM tries to remove directory from disk0:</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd>name (str): Name of the state machine used for logging purposes. Can&#8217;t be <em>None</em>
+command (str): The command sent to the device before FSM starts
+events (list): List of expected strings or pexpect.TIMEOUT exception expected from the device.
+transitions (list): List of tuples in defining the state machine transitions.
+timeout (int): Default timeout between states in seconds.
+max_transitions (int): Default maximum number of transitions allowed for FSM.</dd>
+</dl>
+<p>The transition tuple format is as follows:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">(</span><span class="n">event</span><span class="p">,</span> <span class="p">[</span><span class="n">list_of_states</span><span class="p">],</span> <span class="n">next_state</span><span class="p">,</span> <span class="n">action</span><span class="p">,</span> <span class="n">timeout</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Where:</p>
+<ul class="simple">
+<li><strong>event</strong> (str): string from the <cite>events</cite> list which is expected to be received from device.</li>
+<li><strong>list_of_states</strong> (list): List of FSM states that triggers the action in case of event occurrence.</li>
+<li><strong>next_state</strong> (int): Next state for FSM transition.</li>
+<li><strong>action</strong> (func): function to be executed if the current FSM state belongs to <cite>list_of_states</cite>
+and the <cite>event</cite> occurred. The action can be also <em>None</em> then FSM transits to the next state
+without any action. Action can be also the exception, which is raised and FSM stops.</li>
+</ul>
+<p>The example action:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">send_newline</span><span class="p">(</span><span class="n">ctx</span><span class="p">):</span>
+    <span class="n">ctx</span><span class="o">.</span><span class="n">ctrl</span><span class="o">.</span><span class="n">sendline</span><span class="p">()</span>
+    <span class="k">return</span> <span class="kc">True</span>
+
+<span class="k">def</span> <span class="nf">error</span><span class="p">(</span><span class="n">ctx</span><span class="p">):</span>
+    <span class="n">ctx</span><span class="o">.</span><span class="n">message</span> <span class="o">=</span> <span class="s2">&quot;Filesystem error&quot;</span>
+    <span class="k">return</span> <span class="kc">False</span>
+
+<span class="k">def</span> <span class="nf">readonly</span><span class="p">(</span><span class="n">ctx</span><span class="p">):</span>
+    <span class="n">ctx</span><span class="o">.</span><span class="n">message</span> <span class="o">=</span> <span class="s2">&quot;Filesystem is readonly&quot;</span>
+    <span class="k">return</span> <span class="kc">False</span>
+</pre></div>
+</div>
+<p>The ctx object description refer to <code class="xref py py-class docutils literal"><span class="pre">condoor.fsm.FSM</span></code>.</p>
+<p>If the action returns True then the FSM continues processing. If the action returns False then FSM stops
+and the error message passed back to the ctx object is posted to the log.</p>
+<p>The FSM state is the integer number. The FSM starts with initial <code class="docutils literal"><span class="pre">state=0</span></code> and finishes if the <code class="docutils literal"><span class="pre">next_state</span></code>
+is set to -1.</p>
+<p>If action returns False then FSM returns False. FSM returns True if reaches the -1 state.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="condoor.Connection.discovery">
+<code class="descname">discovery</code><span class="sig-paren">(</span><em>logfile=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/condoor/connection.html#Connection.discovery"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#condoor.Connection.discovery" title="Permalink to this definition">¶</a></dt>
+<dd><p>Discover the device details.</p>
+<p>This method discover several device attributes.</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd><dl class="first last docutils">
+<dt>logfile (file): Optional file descriptor for session logging. The file must be open for write.</dt>
+<dd>The session is logged only if <code class="docutils literal"><span class="pre">log_session=True</span></code> was passed to the constructor.
+It the parameter is not passed then the default <em>session.log</em> file is created in <cite>log_dir</cite>.</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="condoor.Connection.family">
+<code class="descname">family</code><a class="headerlink" href="#condoor.Connection.family" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the string representing hardware platform family.</p>
+<p>For example: ASR9K, ASR900, NCS6K, etc.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="condoor.Connection.platform">
+<code class="descname">platform</code><a class="headerlink" href="#condoor.Connection.platform" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the string representing hardware platform model.</p>
+<p>For example: ASR-9010, ASR922, NCS-4006, etc.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="condoor.Connection.os_type">
+<code class="descname">os_type</code><a class="headerlink" href="#condoor.Connection.os_type" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the string representing the target device OS type.</p>
+<p>For example: IOS, XR, eXR. If not detected returns <em>None</em></p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="condoor.Connection.os_version">
+<code class="descname">os_version</code><a class="headerlink" href="#condoor.Connection.os_version" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the string representing the target device OS version.</p>
+<p>For example 5.3.1. If not detected returns <em>None</em></p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="condoor.Connection.hostname">
+<code class="descname">hostname</code><a class="headerlink" href="#condoor.Connection.hostname" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return target device hostname.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="condoor.Connection.prompt">
+<code class="descname">prompt</code><a class="headerlink" href="#condoor.Connection.prompt" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return target device prompt.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="condoor.Connection.is_connected">
+<code class="descname">is_connected</code><a class="headerlink" href="#condoor.Connection.is_connected" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return if target device is connected.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="condoor.Connection.is_discovered">
+<code class="descname">is_discovered</code><a class="headerlink" href="#condoor.Connection.is_discovered" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return if target device is discovered.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="condoor.Connection.is_console">
+<code class="descname">is_console</code><a class="headerlink" href="#condoor.Connection.is_console" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return if target device is connected via console.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="condoor.Connection.mode">
+<code class="descname">mode</code><a class="headerlink" href="#condoor.Connection.mode" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the sting representing the current device mode.</p>
+<p>For example: Calvados, Windriver, Rommon.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="condoor.Connection.name">
+<code class="descname">name</code><a class="headerlink" href="#condoor.Connection.name" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the chassis name.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="condoor.Connection.description">
+<code class="descname">description</code><a class="headerlink" href="#condoor.Connection.description" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the chassis description.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="condoor.Connection.pid">
+<code class="descname">pid</code><a class="headerlink" href="#condoor.Connection.pid" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the chassis PID.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="condoor.Connection.vid">
+<code class="descname">vid</code><a class="headerlink" href="#condoor.Connection.vid" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the chassis VID.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="condoor.Connection.sn">
+<code class="descname">sn</code><a class="headerlink" href="#condoor.Connection.sn" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the chassis SN.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="condoor.Connection.udi">
+<code class="descname">udi</code><a class="headerlink" href="#condoor.Connection.udi" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the dict representing the udi hardware record.</p>
+<p>Example:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">{</span>
+<span class="s1">&#39;description&#39;</span><span class="p">:</span> <span class="s1">&#39;ASR-9904 AC Chassis&#39;</span><span class="p">,</span>
+<span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;Rack 0&#39;</span><span class="p">,</span>
+<span class="s1">&#39;pid&#39;</span><span class="p">:</span> <span class="s1">&#39;ASR-9904-AC&#39;</span><span class="p">,</span>
+<span class="s1">&#39;sn&#39;</span><span class="p">:</span> <span class="s1">&#39;FOX1830GT5W &#39;</span><span class="p">,</span>
+<span class="s1">&#39;vid&#39;</span><span class="p">:</span> <span class="s1">&#39;V01&#39;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="condoor.Connection.device_info">
+<code class="descname">device_info</code><a class="headerlink" href="#condoor.Connection.device_info" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the dict representing the target device info record.</p>
+<p>Example:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">{</span>
+<span class="s1">&#39;family&#39;</span><span class="p">:</span> <span class="s1">&#39;ASR9K&#39;</span><span class="p">,</span>
+<span class="s1">&#39;os_type&#39;</span><span class="p">:</span> <span class="s1">&#39;eXR&#39;</span><span class="p">,</span>
+<span class="s1">&#39;os_version&#39;</span><span class="p">:</span> <span class="s1">&#39;6.1.0.06I&#39;</span><span class="p">,</span>
+<span class="s1">&#39;platform&#39;</span><span class="p">:</span> <span class="s1">&#39;ASR-9904&#39;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="condoor.Connection.description_record">
+<code class="descname">description_record</code><a class="headerlink" href="#condoor.Connection.description_record" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return dict describing <a class="reference internal" href="#condoor.Connection" title="condoor.Connection"><code class="xref py py-class docutils literal"><span class="pre">condoor.Connection</span></code></a> object.</p>
+<p>Example:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">{</span><span class="s1">&#39;connections&#39;</span><span class="p">:</span> <span class="p">[{</span><span class="s1">&#39;chain&#39;</span><span class="p">:</span> <span class="p">[{</span><span class="s1">&#39;driver_name&#39;</span><span class="p">:</span> <span class="s1">&#39;eXR&#39;</span><span class="p">,</span>
+                 <span class="s1">&#39;family&#39;</span><span class="p">:</span> <span class="s1">&#39;ASR9K&#39;</span><span class="p">,</span>
+                 <span class="s1">&#39;hostname&#39;</span><span class="p">:</span> <span class="s1">&#39;vkg3&#39;</span><span class="p">,</span>
+                 <span class="s1">&#39;is_console&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+                 <span class="s1">&#39;is_target&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+                 <span class="s1">&#39;mode&#39;</span><span class="p">:</span> <span class="s1">&#39;global&#39;</span><span class="p">,</span>
+                 <span class="s1">&#39;os_type&#39;</span><span class="p">:</span> <span class="s1">&#39;eXR&#39;</span><span class="p">,</span>
+                 <span class="s1">&#39;os_version&#39;</span><span class="p">:</span> <span class="s1">&#39;6.1.2.06I&#39;</span><span class="p">,</span>
+                 <span class="s1">&#39;platform&#39;</span><span class="p">:</span> <span class="s1">&#39;ASR-9904&#39;</span><span class="p">,</span>
+                 <span class="s1">&#39;prompt&#39;</span><span class="p">:</span> <span class="s1">&#39;RP/0/RSP0/CPU0:vkg3#&#39;</span><span class="p">,</span>
+                 <span class="s1">&#39;udi&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;description&#39;</span><span class="p">:</span> <span class="s1">&#39;ASR-9904 AC Chassis&#39;</span><span class="p">,</span>
+                         <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;Rack 0&#39;</span><span class="p">,</span>
+                         <span class="s1">&#39;pid&#39;</span><span class="p">:</span> <span class="s1">&#39;ASR-9904-AC&#39;</span><span class="p">,</span>
+                         <span class="s1">&#39;sn&#39;</span><span class="p">:</span> <span class="s1">&#39;FOX2024GKDE &#39;</span><span class="p">,</span>
+                         <span class="s1">&#39;vid&#39;</span><span class="p">:</span> <span class="s1">&#39;V01&#39;</span><span class="p">}}]},</span>
+     <span class="p">{</span><span class="s1">&#39;chain&#39;</span><span class="p">:</span> <span class="p">[{</span><span class="s1">&#39;driver_name&#39;</span><span class="p">:</span> <span class="s1">&#39;generic&#39;</span><span class="p">,</span>
+                 <span class="s1">&#39;family&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+                 <span class="s1">&#39;hostname&#39;</span><span class="p">:</span> <span class="s1">&#39;172.27.41.52:2045&#39;</span><span class="p">,</span>
+                 <span class="s1">&#39;is_console&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+                 <span class="s1">&#39;is_target&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+                 <span class="s1">&#39;mode&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+                 <span class="s1">&#39;os_type&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+                 <span class="s1">&#39;os_version&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+                 <span class="s1">&#39;platform&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+                 <span class="s1">&#39;prompt&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+                 <span class="s1">&#39;udi&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">}]}],</span>
+<span class="s1">&#39;last_chain&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">}</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="exceptions.html" class="btn btn-neutral float-right" title="Exceptions" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="index.html" class="btn btn-neutral" title="API documentation" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2017, Klaudiusz Staniek.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../',
+            VERSION:'1.0.0-alpha1',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../_static/jquery.js"></script>
+      <script type="text/javascript" src="../_static/underscore.js"></script>
+      <script type="text/javascript" src="../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>
