@@ -1,2 +1,0 @@
-NAME     LINE         TIME         IDLE          PID COMMENT
-admin    ttyS0        Sep 12 20:56   .         21543 *
