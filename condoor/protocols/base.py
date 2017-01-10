@@ -25,7 +25,7 @@ class Protocol(object):
         """Authenticate using specific protocol."""
         raise NotImplementedError("Authentication method not implemented")
 
-    def disconnect(self):
+    def disconnect(self, driver):
         """Disconnect using specific protocol."""
         raise NotImplementedError("Disconnect method not implemented")
 

@@ -69,6 +69,7 @@ class Chain(object):
 
     def disconnect(self):
         """Disconnect from the device."""
+        self.target_device.disconnect()
         self.ctrl.disconnect()
         self.tail_disconnect(-1)
 

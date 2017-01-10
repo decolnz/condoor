@@ -176,8 +176,7 @@ class Device(object):
 
     def disconnect(self):
         """Disconnect the device."""
-        # TODO: Workout disconnecting process
-        self.ctrl = None
+        self.protocol.disconnect(self.driver)
         self.protocol = None
 
     def send(self, cmd="", timeout=60, wait_for_string=None):
@@ -240,7 +239,7 @@ class Device(object):
         except CommandSyntaxError as e:  # pylint: disable=invalid-name
             logger.error("{}: '{}'".format(e.message, cmd))
             e.command = cmd
-            raise
+            raise e
 
         except (CommandTimeoutError, pexpect.TIMEOUT):
             logger.error("Command timeout: '{}'".format(cmd))

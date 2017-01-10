@@ -98,11 +98,11 @@ class Telnet(Protocol):
                   init_pattern=self.last_pattern)
         return fsm.run()
 
-    def disconnect(self):
+    def disconnect(self, driver):
         """Disconnect using protocol specific method."""
-        self.device.sendcontrol(']')
-        self.device.sendline('quit')
-        self.device.send(chr(4))
+        # self.device.ctrl.sendcontrol(']')
+        # self.device.ctrl.sendline('quit')
+        # self.device.send(chr(4))
 
 
 class TelnetConsole(Telnet):
@@ -128,8 +128,8 @@ class TelnetConsole(Telnet):
             # router sends it again to delete
             (driver.more_re, [7], 8, None, 10),
             # (prompt, [0, 1, 5], 6, partial(a_send, "\r\n"), 10),
-            (self.device.prompt_re, [0, 1, 5], 0, None, 10),
-            (self.device.prompt_re, [6, 8, 5], -1, partial(a_save_last_pattern, self), 0),
+            (self.device.prompt_re, [0, 5], 0, None, 10),
+            (self.device.prompt_re, [1, 6, 8, 5], -1, partial(a_save_last_pattern, self), 0),
             (driver.rommon_re, [0, 1, 5], -1, partial(a_save_last_pattern, self), 0),
             (driver.unable_to_connect_re, [0, 1], -1, a_unable_to_connect, 0),
             (driver.timeout_re, [0, 1], -1, ConnectionTimeoutError("Connection Timeout", self.hostname), 0),
@@ -140,3 +140,12 @@ class TelnetConsole(Telnet):
         fsm = FSM("TELNET-CONNECT-CONSOLE", self.device, events, transitions, timeout=_C['connect_timeout'],
                   init_pattern=self.last_pattern)
         return fsm.run()
+
+    def disconnect(self, driver):
+        while self.device.mode != 'global':
+            self.device.send('exit')
+
+        self.device.send('exit', wait_for_string=driver.press_return_re)
+        self.device.ctrl.sendcontrol(']')
+        self.device.ctrl.sendline('quit')
+
