@@ -148,4 +148,3 @@ class TelnetConsole(Telnet):
         self.device.send('exit', wait_for_string=driver.press_return_re)
         self.device.ctrl.sendcontrol(']')
         self.device.ctrl.sendline('quit')
-
