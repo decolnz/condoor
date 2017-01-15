@@ -1,0 +1,847 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>condoor.connection &mdash; condoor 1.0.0-alpha1 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+        <link rel="index" title="Index"
+              href="../../genindex.html"/>
+        <link rel="search" title="Search" href="../../search.html"/>
+    <link rel="top" title="condoor 1.0.0-alpha1 documentation" href="../../index.html"/>
+        <link rel="up" title="Module code" href="../index.html"/> 
+
+  
+  <script src="../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> condoor
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../overview.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../install.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api/index.html">API documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../examples.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../FAQ.html">Frequently Asked Questions</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../index.html">condoor</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+      
+    <li>condoor.connection</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for condoor.connection</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;Provides the main Connection class.&quot;&quot;&quot;</span>
+<span class="kn">import</span> <span class="nn">re</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">time</span>
+<span class="kn">import</span> <span class="nn">shelve</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">from</span> <span class="nn">hashlib</span> <span class="k">import</span> <span class="n">md5</span>
+
+<span class="kn">from</span> <span class="nn">collections</span> <span class="k">import</span> <span class="n">deque</span>
+<span class="kn">from</span> <span class="nn">condoor.chain</span> <span class="k">import</span> <span class="n">Chain</span>
+<span class="kn">from</span> <span class="nn">condoor.exceptions</span> <span class="k">import</span> <span class="ne">ConnectionError</span><span class="p">,</span> <span class="n">ConnectionTimeoutError</span>
+<span class="kn">from</span> <span class="nn">condoor.utils</span> <span class="k">import</span> <span class="n">FilteredFile</span><span class="p">,</span> <span class="n">normalize_urls</span><span class="p">,</span> <span class="n">make_handler</span>
+<span class="kn">from</span> <span class="nn">condoor.version</span> <span class="k">import</span> <span class="n">__version__</span>
+
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="n">__name__</span><span class="p">)</span>
+
+
+<span class="n">_CACHE_FILE</span> <span class="o">=</span> <span class="s2">&quot;/tmp/condoor.&quot;</span> <span class="o">+</span> <span class="n">__version__</span> <span class="o">+</span> <span class="s2">&quot;.shelve&quot;</span>
+
+
+<div class="viewcode-block" id="Connection"><a class="viewcode-back" href="../../api/condoor.html#condoor.Connection">[docs]</a><span class="k">class</span> <span class="nc">Connection</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Connection class providing the condoor API.</span>
+
+<span class="sd">    Main API class providing the basic API to the physical devices.</span>
+<span class="sd">    It implements the following methods:</span>
+
+<span class="sd">        - connect</span>
+<span class="sd">        - reconnect</span>
+<span class="sd">        - disconnect</span>
+<span class="sd">        - send</span>
+<span class="sd">        - reload</span>
+<span class="sd">        - enable</span>
+<span class="sd">        - run_fsm</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="Connection.__init__"><a class="viewcode-back" href="../../api/condoor.html#condoor.Connection.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">urls</span><span class="o">=</span><span class="p">[],</span> <span class="n">log_dir</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">log_level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">DEBUG</span><span class="p">,</span> <span class="n">log_session</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Initialize the :class:`condoor.Connection` object.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            name (str): The connection name.</span>
+
+<span class="sd">            urls (str or list): This argument may be a string or list of strings or list of list of strings.</span>
+<span class="sd">             When **urls** type is string it must be valid URL in the following format::</span>
+
+<span class="sd">                urls = &quot;&lt;protocol&gt;://&lt;user&gt;:&lt;password&gt;@&lt;host&gt;:&lt;port&gt;/&lt;enable_password&gt;</span>
+
+<span class="sd">             Example::</span>
+
+<span class="sd">                urls = &quot;telnet://cisco:cisco@192.168.1.1&quot;</span>
+
+<span class="sd">             The *&lt;port&gt;* can be omitted and default port for protocol will be used.</span>
+<span class="sd">             When **urls** type is list of strings it can provide multiple intermediate hosts (jumphosts) with</span>
+<span class="sd">             their credentials before making the final connection the target device. Example::</span>
+
+<span class="sd">                urls = [&quot;ssh://admin:secretpass@jumphost&quot;, &quot;telnet://cisco:cisco@192.168.1.1&quot;]</span>
+
+<span class="sd">                urls = [&quot;ssh://admin:pass@jumphost1&quot;, &quot;ssh://admin:pass@jumphost2&quot;,</span>
+<span class="sd">                        &quot;telnet://cisco:cisco@192.168.1.1&quot;]</span>
+
+<span class="sd">             The **urls** can be list of list of strings. In this case the multiple connection chains can be provided</span>
+<span class="sd">             to the target device. This is used when device has two processor cards with console connected to</span>
+<span class="sd">             both of them. Example::</span>
+
+<span class="sd">                urls = [[&quot;ssh://admin:pass@jumphost1&quot;, &quot;telnet://cisco:cisco@termserv:2001&quot;],</span>
+<span class="sd">                        [&quot;ssh://admin:pass@jumphost1&quot;, &quot;telnet://cisco:cisco@termserv:2002&quot;]]</span>
+
+<span class="sd">            log_dir (str): The path to the directory when *session.log* and *condoor.log* is stored. If *None*</span>
+<span class="sd">             the condoor log and session log is redirected to *stdout*</span>
+
+<span class="sd">            log_level (int): The condoor logging level.</span>
+
+<span class="sd">            log_session (Bool): If **True** the terminal session is logged.</span>
+
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_discovered</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_last_chain_index</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_msg_callback</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">log_session</span> <span class="o">=</span> <span class="n">log_session</span>
+        <span class="n">top_logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s2">&quot;condoor&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">top_logger</span><span class="o">.</span><span class="n">handlers</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_handler</span> <span class="o">=</span> <span class="n">make_handler</span><span class="p">(</span><span class="n">log_dir</span><span class="p">,</span> <span class="n">log_level</span><span class="p">)</span>
+            <span class="n">top_logger</span><span class="o">.</span><span class="n">addHandler</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_handler</span><span class="p">)</span>
+
+        <span class="n">top_logger</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">log_level</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">log_session</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">session_fd</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_make_session_fd</span><span class="p">(</span><span class="n">log_dir</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">session_fd</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="n">top_logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Condoor Version </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">__version__</span><span class="p">))</span>
+        <span class="n">top_logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Cache filename: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">_CACHE_FILE</span><span class="p">))</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">connection_chains</span> <span class="o">=</span> <span class="p">[</span><span class="n">Chain</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">url_list</span><span class="p">)</span> <span class="k">for</span> <span class="n">url_list</span> <span class="ow">in</span> <span class="n">normalize_urls</span><span class="p">(</span><span class="n">urls</span><span class="p">)]</span></div>
+
+    <span class="k">def</span> <span class="nf">__del__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Clean up the object.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_handler</span><span class="p">:</span>
+            <span class="n">top_logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s2">&quot;condoor&quot;</span><span class="p">)</span>
+            <span class="n">top_logger</span><span class="o">.</span><span class="n">removeHandler</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_handler</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_make_session_fd</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">log_dir</span><span class="p">):</span>
+        <span class="n">session_fd</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="n">log_dir</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="c1"># FIXME: take pattern from pattern manager</span>
+                <span class="n">session_fd</span> <span class="o">=</span> <span class="n">FilteredFile</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">log_dir</span><span class="p">,</span> <span class="s1">&#39;session.log&#39;</span><span class="p">),</span>
+                                          <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;w&quot;</span><span class="p">,</span> <span class="n">pattern</span><span class="o">=</span><span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s2">&quot;s?ftp://.*:(.*)@&quot;</span><span class="p">))</span>
+            <span class="k">except</span> <span class="ne">IOError</span><span class="p">:</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Unable to create session log file&quot;</span><span class="p">)</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">log_session</span><span class="p">:</span>
+                <span class="kn">import</span> <span class="nn">sys</span>
+                <span class="n">session_fd</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">stderr</span>
+
+        <span class="k">return</span> <span class="n">session_fd</span>
+
+    <span class="k">def</span> <span class="nf">_get_key</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">key</span> <span class="o">=</span> <span class="n">md5</span><span class="p">()</span>
+        <span class="n">key</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">connection_chains</span><span class="p">))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Cache key: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">connection_chains</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">key</span><span class="o">.</span><span class="n">hexdigest</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">_cache_open</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;r&#39;</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">cache</span> <span class="o">=</span> <span class="n">shelve</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">_CACHE_FILE</span><span class="p">,</span> <span class="n">mode</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Unable to open a cache file for read.&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">None</span>
+        <span class="k">return</span> <span class="n">cache</span>
+
+    <span class="k">def</span> <span class="nf">_write_cache</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">key</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_key</span><span class="p">()</span>
+        <span class="n">cache</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cache_open</span><span class="p">(</span><span class="n">mode</span><span class="o">=</span><span class="s1">&#39;c&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">cache</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">cache</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">description_record</span>
+            <span class="n">cache</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Connection information cached: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">key</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="nf">_read_cache</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">key</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_key</span><span class="p">()</span>
+        <span class="n">cache</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cache_open</span><span class="p">(</span><span class="n">mode</span><span class="o">=</span><span class="s1">&#39;r&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">cache</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">description_record</span> <span class="o">=</span> <span class="n">cache</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Read cached information.&quot;</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Connection cache missed: </span><span class="si">{}</span><span class="s2">.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">key</span><span class="p">))</span>
+            <span class="k">finally</span><span class="p">:</span>
+                <span class="n">cache</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">_clear_cache</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># key = self._get_key()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_read_cache</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">description_record</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Description record: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">description_record</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_write_cache</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">_chain_indices</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Get the deque of chain indices starting with last successful index.&quot;&quot;&quot;</span>
+        <span class="n">chain_indices</span> <span class="o">=</span> <span class="n">deque</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">connection_chains</span><span class="p">)))</span>
+        <span class="n">chain_indices</span><span class="o">.</span><span class="n">rotate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_last_chain_index</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">chain_indices</span>
+
+<div class="viewcode-block" id="Connection.connect"><a class="viewcode-back" href="../../api/condoor.html#condoor.Connection.connect">[docs]</a>    <span class="k">def</span> <span class="nf">connect</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">logfile</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">force_discovery</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Connect to the device.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            logfile (file): Optional file descriptor for session logging. The file must be open for write.</span>
+<span class="sd">                The session is logged only if ``log_session=True`` was passed to the constructor.</span>
+<span class="sd">                If *None* then the default *session.log* file is created in `log_dir`.</span>
+
+<span class="sd">            force_discovery (Bool): Optional. If True the device discover process will start after getting connected.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            ConnectionError: If the discovery method was not called first or there was a problem with getting</span>
+<span class="sd">                the connection.</span>
+
+<span class="sd">            ConnectionAuthenticationError: If the authentication failed.</span>
+
+<span class="sd">            ConnectionTimeoutError: If the connection timeout happened.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">logfile</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">session_fd</span> <span class="o">=</span> <span class="n">logfile</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_clear_cache</span><span class="p">()</span> <span class="k">if</span> <span class="n">force_discovery</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">_read_cache</span><span class="p">()</span>
+
+        <span class="n">excpt</span> <span class="o">=</span> <span class="ne">ConnectionError</span><span class="p">(</span><span class="s2">&quot;Could not connect to the device.&quot;</span><span class="p">)</span>
+
+        <span class="n">chains</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">connection_chains</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="n">chain</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">connection_chains</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">emit_message</span><span class="p">(</span><span class="s2">&quot;Connection chain </span><span class="si">{}</span><span class="s2">/</span><span class="si">{}</span><span class="s2">: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="n">chains</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">chain</span><span class="p">)),</span> <span class="n">log_level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">)</span>
+
+        <span class="n">begin</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+        <span class="n">attempt</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="k">for</span> <span class="n">index</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_chain_indices</span><span class="p">():</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">emit_message</span><span class="p">(</span><span class="s2">&quot;Connection chain/attempt [</span><span class="si">{}</span><span class="s2">/</span><span class="si">{}</span><span class="s2">]&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">index</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">attempt</span><span class="p">),</span> <span class="n">log_level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">)</span>
+
+            <span class="n">chain</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">connection_chains</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_last_chain_index</span> <span class="o">=</span> <span class="n">index</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">chain</span><span class="o">.</span><span class="n">connect</span><span class="p">():</span>
+                    <span class="k">break</span>
+            <span class="k">except</span> <span class="p">(</span><span class="n">ConnectionTimeoutError</span><span class="p">,</span> <span class="ne">ConnectionError</span><span class="p">)</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>  <span class="c1"># pylint: disable=invalid-name</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">emit_message</span><span class="p">(</span><span class="s2">&quot;Connection error: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">e</span><span class="p">),</span> <span class="n">log_level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">ERROR</span><span class="p">)</span>
+                <span class="n">excpt</span> <span class="o">=</span> <span class="n">e</span>
+
+            <span class="n">attempt</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># invalidate cache</span>
+            <span class="k">raise</span> <span class="n">excpt</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_write_cache</span><span class="p">()</span>
+        <span class="n">elapsed</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">begin</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">emit_message</span><span class="p">(</span><span class="s2">&quot;Target device connected in </span><span class="si">{:.2f}</span><span class="s2">s.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">elapsed</span><span class="p">),</span> <span class="n">log_level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;-&quot;</span> <span class="o">*</span> <span class="mi">20</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Connection.reconnect"><a class="viewcode-back" href="../../api/condoor.html#condoor.Connection.reconnect">[docs]</a>    <span class="k">def</span> <span class="nf">reconnect</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">logfile</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">max_timeout</span><span class="o">=</span><span class="mi">360</span><span class="p">,</span> <span class="n">force_discovery</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Reconnect to the device.</span>
+
+<span class="sd">        It can be called when after device reloads or the session was</span>
+<span class="sd">        disconnected either by device or jumphost. If multiple jumphosts are used then `reconnect` starts from</span>
+<span class="sd">        the last valid connection.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            logfile (file): Optional file descriptor for session logging. The file must be open for write.</span>
+<span class="sd">                The session is logged only if ``log_session=True`` was passed to the constructor.</span>
+<span class="sd">                It the parameter is not passed then the default *session.log* file is created in `log_dir`.</span>
+
+<span class="sd">            max_timeout (int): This is the maximum amount of time during the session tries to reconnect. It may take</span>
+<span class="sd">                longer depending on the TELNET or SSH default timeout.</span>
+
+<span class="sd">            force_discovery (Bool): Optional. If True the device discover process will start after getting connected.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            ConnectionError: If the discovery method was not called first or there was a problem with getting</span>
+<span class="sd">             the connection.</span>
+
+<span class="sd">            ConnectionAuthenticationError: If the authentication failed.</span>
+
+<span class="sd">            ConnectionTimeoutError: If the connection timeout happened.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">logfile</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">session_fd</span> <span class="o">=</span> <span class="n">logfile</span>
+
+        <span class="k">if</span> <span class="n">force_discovery</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_clear_cache</span><span class="p">()</span>
+            <span class="c1"># self.disconnect()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_read_cache</span><span class="p">()</span>
+
+        <span class="n">chain_indices</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_chain_indices</span><span class="p">()</span>
+
+        <span class="n">excpt</span> <span class="o">=</span> <span class="ne">ConnectionError</span><span class="p">(</span><span class="s2">&quot;Could not (re)connect to the device&quot;</span><span class="p">)</span>
+
+        <span class="n">chains</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">connection_chains</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="n">chain</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">connection_chains</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">emit_message</span><span class="p">(</span><span class="s2">&quot;Connection chain </span><span class="si">{}</span><span class="s2">/</span><span class="si">{}</span><span class="s2">: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="n">chains</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">chain</span><span class="p">)),</span> <span class="n">log_level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">emit_message</span><span class="p">(</span><span class="s2">&quot;Trying to (re)connect within </span><span class="si">{}</span><span class="s2"> seconds&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">max_timeout</span><span class="p">),</span> <span class="n">log_level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">)</span>
+        <span class="n">sleep_time</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">begin</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+        <span class="n">attempt</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="n">elapsed</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="k">while</span> <span class="n">max_timeout</span> <span class="o">-</span> <span class="n">elapsed</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">sleep_time</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">emit_message</span><span class="p">(</span><span class="s2">&quot;Waiting </span><span class="si">{:.0f}</span><span class="s2">s before next connection attempt&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">sleep_time</span><span class="p">),</span> <span class="n">log_level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">)</span>
+                <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="n">sleep_time</span><span class="p">)</span>
+
+            <span class="c1"># up</span>
+            <span class="n">elapsed</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">begin</span>
+            <span class="c1"># logger.debug(&quot;Connection attempt {} Elapsed {:.1f}s&quot;.format(attempt, elapsed))</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">index</span> <span class="o">=</span> <span class="n">chain_indices</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">emit_message</span><span class="p">(</span><span class="s2">&quot;Connection chain/attempt [</span><span class="si">{}</span><span class="s2">/</span><span class="si">{}</span><span class="s2">]&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">index</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">attempt</span><span class="p">),</span>
+                                  <span class="n">log_level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">)</span>
+
+                <span class="n">chain</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">connection_chains</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_last_chain_index</span> <span class="o">=</span> <span class="n">index</span>
+                <span class="k">if</span> <span class="n">chain</span><span class="o">.</span><span class="n">connect</span><span class="p">():</span>
+                    <span class="k">break</span>
+            <span class="k">except</span> <span class="p">(</span><span class="n">ConnectionTimeoutError</span><span class="p">,</span> <span class="ne">ConnectionError</span><span class="p">)</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>  <span class="c1"># pylint: disable=invalid-name</span>
+                <span class="k">if</span> <span class="n">chain</span><span class="o">.</span><span class="n">ctrl</span><span class="o">.</span><span class="n">is_connected</span><span class="p">:</span>
+                    <span class="n">prompt</span> <span class="o">=</span> <span class="n">chain</span><span class="o">.</span><span class="n">ctrl</span><span class="o">.</span><span class="n">detect_prompt</span><span class="p">()</span>
+                    <span class="n">index</span> <span class="o">=</span> <span class="n">chain</span><span class="o">.</span><span class="n">get_device_index_based_on_prompt</span><span class="p">(</span><span class="n">prompt</span><span class="p">)</span>
+                    <span class="n">chain</span><span class="o">.</span><span class="n">tail_disconnect</span><span class="p">(</span><span class="n">index</span><span class="p">)</span>
+
+                <span class="bp">self</span><span class="o">.</span><span class="n">emit_message</span><span class="p">(</span><span class="s2">&quot;Connection error: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">e</span><span class="p">),</span> <span class="n">log_level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">ERROR</span><span class="p">)</span>
+                <span class="n">chain_indices</span><span class="o">.</span><span class="n">rotate</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+                <span class="n">excpt</span> <span class="o">=</span> <span class="n">e</span>
+            <span class="k">finally</span><span class="p">:</span>
+                <span class="c1"># TODO: Make a configuration parameter</span>
+                <span class="n">elapsed</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">begin</span>
+                <span class="n">sleep_time</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="mi">30</span><span class="p">,</span> <span class="n">max_timeout</span> <span class="o">-</span> <span class="n">elapsed</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">emit_message</span><span class="p">(</span><span class="s2">&quot;Time elapsed </span><span class="si">{:.0f}</span><span class="s2">s/</span><span class="si">{:.0f}</span><span class="s2">s&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">elapsed</span><span class="p">,</span> <span class="n">max_timeout</span><span class="p">),</span> <span class="n">log_level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">)</span>
+
+            <span class="n">attempt</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">emit_message</span><span class="p">(</span><span class="s2">&quot;Unable to (re)connect within </span><span class="si">{:.0f}</span><span class="s2">s&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">elapsed</span><span class="p">),</span> <span class="n">log_level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">ERROR</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="n">excpt</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_write_cache</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">emit_message</span><span class="p">(</span><span class="s2">&quot;Target device connected in </span><span class="si">{:.0f}</span><span class="s2">s.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">elapsed</span><span class="p">),</span> <span class="n">log_level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;-&quot;</span> <span class="o">*</span> <span class="mi">20</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Connection.send"><a class="viewcode-back" href="../../api/condoor.html#condoor.Connection.send">[docs]</a>    <span class="k">def</span> <span class="nf">send</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cmd</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="mi">60</span><span class="p">,</span> <span class="n">wait_for_string</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Send the command to the device and return the output.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            cmd (str): Command string for execution. Defaults to empty string.</span>
+<span class="sd">            timeout (int): Timeout in seconds. Defaults to 60s</span>
+<span class="sd">            wait_for_string (str): This is optional string that driver</span>
+<span class="sd">            waits for after command execution. If none the detected</span>
+<span class="sd">            prompt will be used.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            A string containing the command output.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            ConnectionError: General connection error during command execution</span>
+<span class="sd">            CommandSyntaxError: Command syntax error or unknown command.</span>
+<span class="sd">            CommandTimeoutError: Timeout during command execution</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_chain</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="n">cmd</span><span class="p">,</span> <span class="n">timeout</span><span class="p">,</span> <span class="n">wait_for_string</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Connection.disconnect"><a class="viewcode-back" href="../../api/condoor.html#condoor.Connection.disconnect">[docs]</a>    <span class="k">def</span> <span class="nf">disconnect</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Disconnect the session from the device and all the jumphosts in the path.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_chain</span><span class="o">.</span><span class="n">disconnect</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="Connection.discovery"><a class="viewcode-back" href="../../api/condoor.html#condoor.Connection.discovery">[docs]</a>    <span class="k">def</span> <span class="nf">discovery</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">logfile</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Discover the device details.</span>
+
+<span class="sd">        This method discover several device attributes.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            logfile (file): Optional file descriptor for session logging. The file must be open for write.</span>
+<span class="sd">                The session is logged only if ``log_session=True`` was passed to the constructor.</span>
+<span class="sd">                It the parameter is not passed then the default *session.log* file is created in `log_dir`.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;&#39;discovery&#39; method is deprecated. Please &#39;connect&#39; with force_disovery=True.&quot;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Device discovery process started&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">logfile</span><span class="o">=</span><span class="n">logfile</span><span class="p">,</span> <span class="n">force_discovery</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">disconnect</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="Connection.enable"><a class="viewcode-back" href="../../api/condoor.html#condoor.Connection.enable">[docs]</a>    <span class="k">def</span> <span class="nf">enable</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">enable_password</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Change the device mode to privileged.</span>
+
+<span class="sd">        If device does not support privileged mode the the informational message to the log will be posted.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            enable_password (str): The privileged mode password. This is optional parameter. If password is not</span>
+<span class="sd">                provided but required the password from url will be used. Refer to :class:`condoor.Connection`</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_chain</span><span class="o">.</span><span class="n">target_device</span><span class="o">.</span><span class="n">enable</span><span class="p">(</span><span class="n">enable_password</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Connection.reload"><a class="viewcode-back" href="../../api/condoor.html#condoor.Connection.reload">[docs]</a>    <span class="k">def</span> <span class="nf">reload</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">reload_timeout</span><span class="o">=</span><span class="mi">300</span><span class="p">,</span> <span class="n">save_config</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">no_reload_cmd</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Reload the device and wait for device to boot up.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_clear_cache</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_chain</span><span class="o">.</span><span class="n">target_device</span><span class="o">.</span><span class="n">reload</span><span class="p">(</span><span class="n">reload_timeout</span><span class="p">,</span> <span class="n">save_config</span><span class="p">,</span> <span class="n">no_reload_cmd</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Connection.run_fsm"><a class="viewcode-back" href="../../api/condoor.html#condoor.Connection.run_fsm">[docs]</a>    <span class="k">def</span> <span class="nf">run_fsm</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">command</span><span class="p">,</span> <span class="n">events</span><span class="p">,</span> <span class="n">transitions</span><span class="p">,</span> <span class="n">timeout</span><span class="p">,</span> <span class="n">max_transitions</span><span class="o">=</span><span class="mi">20</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Instantiate and run the Finite State Machine for the current device connection.</span>
+
+<span class="sd">        Here is the example of usage::</span>
+
+<span class="sd">            test_dir = &quot;rw_test&quot;</span>
+<span class="sd">            dir = &quot;disk0:&quot; + test_dir</span>
+<span class="sd">            REMOVE_DIR = re.compile(re.escape(&quot;Remove directory filename [{}]?&quot;.format(test_dir)))</span>
+<span class="sd">            DELETE_CONFIRM = re.compile(re.escape(&quot;Delete {}/{}[confirm]&quot;.format(filesystem, test_dir)))</span>
+<span class="sd">            REMOVE_ERROR = re.compile(re.escape(&quot;%Error Removing dir {} (Directory doesnot exist)&quot;.format(test_dir)))</span>
+
+<span class="sd">            command = &quot;rmdir {}&quot;.format(dir)</span>
+<span class="sd">            events = [device.prompt, REMOVE_DIR, DELETE_CONFIRM, REMOVE_ERROR, pexpect.TIMEOUT]</span>
+<span class="sd">            transitions = [</span>
+<span class="sd">                (REMOVE_DIR, [0], 1, send_newline, 5),</span>
+<span class="sd">                (DELETE_CONFIRM, [1], 2, send_newline, 5),</span>
+<span class="sd">                # if dir does not exist initially it&#39;s ok</span>
+<span class="sd">                (REMOVE_ERROR, [0], 2, None, 0),</span>
+<span class="sd">                (device.prompt, [2], -1, None, 0),</span>
+<span class="sd">                (pexpect.TIMEOUT, [0, 1, 2], -1, error, 0)</span>
+
+<span class="sd">            ]</span>
+<span class="sd">            if not conn.run_fsm(&quot;DELETE_DIR&quot;, command, events, transitions, timeout=5):</span>
+<span class="sd">                return False</span>
+
+<span class="sd">        This FSM tries to remove directory from disk0:</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            name (str): Name of the state machine used for logging purposes. Can&#39;t be *None*</span>
+<span class="sd">            command (str): The command sent to the device before FSM starts</span>
+<span class="sd">            events (list): List of expected strings or pexpect.TIMEOUT exception expected from the device.</span>
+<span class="sd">            transitions (list): List of tuples in defining the state machine transitions.</span>
+<span class="sd">            timeout (int): Default timeout between states in seconds.</span>
+<span class="sd">            max_transitions (int): Default maximum number of transitions allowed for FSM.</span>
+
+<span class="sd">        The transition tuple format is as follows::</span>
+
+<span class="sd">            (event, [list_of_states], next_state, action, timeout)</span>
+
+<span class="sd">        Where:</span>
+
+<span class="sd">        - **event** (str): string from the `events` list which is expected to be received from device.</span>
+<span class="sd">        - **list_of_states** (list): List of FSM states that triggers the action in case of event occurrence.</span>
+<span class="sd">        - **next_state** (int): Next state for FSM transition.</span>
+<span class="sd">        - **action** (func): function to be executed if the current FSM state belongs to `list_of_states`</span>
+<span class="sd">          and the `event` occurred. The action can be also *None* then FSM transits to the next state</span>
+<span class="sd">          without any action. Action can be also the exception, which is raised and FSM stops.</span>
+
+<span class="sd">        The example action::</span>
+
+<span class="sd">            def send_newline(ctx):</span>
+<span class="sd">                ctx.ctrl.sendline()</span>
+<span class="sd">                return True</span>
+
+<span class="sd">            def error(ctx):</span>
+<span class="sd">                ctx.message = &quot;Filesystem error&quot;</span>
+<span class="sd">                return False</span>
+
+<span class="sd">            def readonly(ctx):</span>
+<span class="sd">                ctx.message = &quot;Filesystem is readonly&quot;</span>
+<span class="sd">                return False</span>
+
+<span class="sd">        The ctx object description refer to :class:`condoor.fsm.FSM`.</span>
+
+<span class="sd">        If the action returns True then the FSM continues processing. If the action returns False then FSM stops</span>
+<span class="sd">        and the error message passed back to the ctx object is posted to the log.</span>
+
+
+<span class="sd">        The FSM state is the integer number. The FSM starts with initial ``state=0`` and finishes if the ``next_state``</span>
+<span class="sd">        is set to -1.</span>
+
+<span class="sd">        If action returns False then FSM returns False. FSM returns True if reaches the -1 state.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_chain</span><span class="o">.</span><span class="n">target_device</span><span class="o">.</span><span class="n">run_fsm</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">command</span><span class="p">,</span> <span class="n">events</span><span class="p">,</span> <span class="n">transitions</span><span class="p">,</span> <span class="n">timeout</span><span class="p">,</span> <span class="n">max_transitions</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="nf">emit_message</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">,</span> <span class="n">log_level</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Call the msg callback function with the message.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_msg_callback</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_msg_callback</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">log_level</span><span class="p">,</span> <span class="n">message</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">msg_callback</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return the message callback.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_msg_callback</span>
+
+    <span class="nd">@msg_callback</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">msg_callback</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">callback</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set the message callback.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">callable</span><span class="p">(</span><span class="n">callback</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_msg_callback</span> <span class="o">=</span> <span class="n">callback</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_msg_callback</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">_chain</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">connection_chains</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_last_chain_index</span><span class="p">]</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">is_connected</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return if target device is connected.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_chain</span><span class="o">.</span><span class="n">is_connected</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">is_discovered</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return if target device is discovered.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_chain</span><span class="o">.</span><span class="n">is_discovered</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">is_console</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return if target device is connected via console.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_chain</span><span class="o">.</span><span class="n">is_console</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">prompt</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return target device prompt.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_chain</span><span class="o">.</span><span class="n">target_device</span><span class="o">.</span><span class="n">prompt</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">hostname</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return target device hostname.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_chain</span><span class="o">.</span><span class="n">target_device</span><span class="o">.</span><span class="n">hostname</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">os_type</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return the string representing the target device OS type.</span>
+
+<span class="sd">        For example: IOS, XR, eXR. If not detected returns *None*</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_chain</span><span class="o">.</span><span class="n">target_device</span><span class="o">.</span><span class="n">os_type</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">os_version</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return the string representing the target device OS version.</span>
+
+<span class="sd">        For example 5.3.1. If not detected returns *None*</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_chain</span><span class="o">.</span><span class="n">target_device</span><span class="o">.</span><span class="n">os_version</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">family</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return the string representing hardware platform family.</span>
+
+<span class="sd">        For example: ASR9K, ASR900, NCS6K, etc.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_chain</span><span class="o">.</span><span class="n">target_device</span><span class="o">.</span><span class="n">family</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">platform</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return the string representing hardware platform model.</span>
+
+<span class="sd">        For example: ASR-9010, ASR922, NCS-4006, etc.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_chain</span><span class="o">.</span><span class="n">target_device</span><span class="o">.</span><span class="n">platform</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">mode</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return the sting representing the current device mode.</span>
+
+<span class="sd">        For example: Calvados, Windriver, Rommon.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_chain</span><span class="o">.</span><span class="n">target_device</span><span class="o">.</span><span class="n">driver</span><span class="o">.</span><span class="n">platform</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return the chassis name.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_chain</span><span class="o">.</span><span class="n">target_device</span><span class="o">.</span><span class="n">udi</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">]</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">description</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return the chassis description.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_chain</span><span class="o">.</span><span class="n">target_device</span><span class="o">.</span><span class="n">udi</span><span class="p">[</span><span class="s1">&#39;description&#39;</span><span class="p">]</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">pid</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return the chassis PID.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_chain</span><span class="o">.</span><span class="n">target_device</span><span class="o">.</span><span class="n">udi</span><span class="p">[</span><span class="s1">&#39;pid&#39;</span><span class="p">]</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">vid</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return the chassis VID.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_chain</span><span class="o">.</span><span class="n">target_device</span><span class="o">.</span><span class="n">udi</span><span class="p">[</span><span class="s1">&#39;vid&#39;</span><span class="p">]</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">sn</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>  <span class="c1"># pylint: disable=invalid-name</span>
+        <span class="sd">&quot;&quot;&quot;Return the chassis SN.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_chain</span><span class="o">.</span><span class="n">target_device</span><span class="o">.</span><span class="n">udi</span><span class="p">[</span><span class="s1">&#39;sn&#39;</span><span class="p">]</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">udi</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return the dict representing the udi hardware record.</span>
+
+<span class="sd">        Example::</span>
+
+<span class="sd">            {</span>
+<span class="sd">            &#39;description&#39;: &#39;ASR-9904 AC Chassis&#39;,</span>
+<span class="sd">            &#39;name&#39;: &#39;Rack 0&#39;,</span>
+<span class="sd">            &#39;pid&#39;: &#39;ASR-9904-AC&#39;,</span>
+<span class="sd">            &#39;sn&#39;: &#39;FOX1830GT5W &#39;,</span>
+<span class="sd">            &#39;vid&#39;: &#39;V01&#39;</span>
+<span class="sd">            }</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_chain</span><span class="o">.</span><span class="n">target_device</span><span class="o">.</span><span class="n">udi</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">device_info</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return the dict representing the target device info record.</span>
+
+<span class="sd">        Example::</span>
+
+<span class="sd">            {</span>
+<span class="sd">            &#39;family&#39;: &#39;ASR9K&#39;,</span>
+<span class="sd">            &#39;os_type&#39;: &#39;eXR&#39;,</span>
+<span class="sd">            &#39;os_version&#39;: &#39;6.1.0.06I&#39;,</span>
+<span class="sd">            &#39;platform&#39;: &#39;ASR-9904&#39;</span>
+<span class="sd">            }</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_chain</span><span class="o">.</span><span class="n">target_device</span><span class="o">.</span><span class="n">device_info</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">description_record</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return dict describing :class:`condoor.Connection` object.</span>
+
+<span class="sd">        Example::</span>
+
+<span class="sd">            {&#39;connections&#39;: [{&#39;chain&#39;: [{&#39;driver_name&#39;: &#39;eXR&#39;,</span>
+<span class="sd">                             &#39;family&#39;: &#39;ASR9K&#39;,</span>
+<span class="sd">                             &#39;hostname&#39;: &#39;vkg3&#39;,</span>
+<span class="sd">                             &#39;is_console&#39;: True,</span>
+<span class="sd">                             &#39;is_target&#39;: True,</span>
+<span class="sd">                             &#39;mode&#39;: &#39;global&#39;,</span>
+<span class="sd">                             &#39;os_type&#39;: &#39;eXR&#39;,</span>
+<span class="sd">                             &#39;os_version&#39;: &#39;6.1.2.06I&#39;,</span>
+<span class="sd">                             &#39;platform&#39;: &#39;ASR-9904&#39;,</span>
+<span class="sd">                             &#39;prompt&#39;: &#39;RP/0/RSP0/CPU0:vkg3#&#39;,</span>
+<span class="sd">                             &#39;udi&#39;: {&#39;description&#39;: &#39;ASR-9904 AC Chassis&#39;,</span>
+<span class="sd">                                     &#39;name&#39;: &#39;Rack 0&#39;,</span>
+<span class="sd">                                     &#39;pid&#39;: &#39;ASR-9904-AC&#39;,</span>
+<span class="sd">                                     &#39;sn&#39;: &#39;FOX2024GKDE &#39;,</span>
+<span class="sd">                                     &#39;vid&#39;: &#39;V01&#39;}}]},</span>
+<span class="sd">                 {&#39;chain&#39;: [{&#39;driver_name&#39;: &#39;generic&#39;,</span>
+<span class="sd">                             &#39;family&#39;: None,</span>
+<span class="sd">                             &#39;hostname&#39;: &#39;172.27.41.52:2045&#39;,</span>
+<span class="sd">                             &#39;is_console&#39;: None,</span>
+<span class="sd">                             &#39;is_target&#39;: True,</span>
+<span class="sd">                             &#39;mode&#39;: None,</span>
+<span class="sd">                             &#39;os_type&#39;: None,</span>
+<span class="sd">                             &#39;os_version&#39;: None,</span>
+<span class="sd">                             &#39;platform&#39;: None,</span>
+<span class="sd">                             &#39;prompt&#39;: None,</span>
+<span class="sd">                             &#39;udi&#39;: None}]}],</span>
+<span class="sd">            &#39;last_chain&#39;: 0}</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s1">&#39;connections&#39;</span><span class="p">:</span> <span class="p">[{</span><span class="s1">&#39;chain&#39;</span><span class="p">:</span> <span class="p">[</span><span class="n">device</span><span class="o">.</span><span class="n">device_info</span> <span class="k">for</span> <span class="n">device</span> <span class="ow">in</span> <span class="n">chain</span><span class="o">.</span><span class="n">devices</span><span class="p">]}</span>
+                            <span class="k">for</span> <span class="n">chain</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">connection_chains</span><span class="p">],</span>
+            <span class="s1">&#39;last_chain&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_last_chain_index</span><span class="p">,</span>
+        <span class="p">}</span>
+
+    <span class="nd">@description_record</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">description_record</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cdr</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">cdr</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">cdr</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">description_record</span>
+            <span class="k">for</span> <span class="n">chain</span><span class="p">,</span> <span class="n">data</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">connection_chains</span><span class="p">,</span> <span class="n">cdr</span><span class="p">[</span><span class="s1">&#39;connections&#39;</span><span class="p">]):</span>
+                <span class="n">chain</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span>
+
+            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Connection information cleared&quot;</span><span class="p">)</span>
+            <span class="k">return</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">chain</span><span class="p">,</span> <span class="n">data</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">connection_chains</span><span class="p">,</span> <span class="n">cdr</span><span class="p">[</span><span class="s1">&#39;connections&#39;</span><span class="p">]):</span>
+                <span class="n">chain</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;chain&#39;</span><span class="p">])</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_last_chain_index</span> <span class="o">=</span> <span class="n">cdr</span><span class="p">[</span><span class="s1">&#39;last_chain&#39;</span><span class="p">]</span>
+        <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Invalid connection information&quot;</span><span class="p">)</span>
+
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Connection information updated from cache.&quot;</span><span class="p">)</span></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2017, Klaudiusz Staniek.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../',
+            VERSION:'1.0.0-alpha1',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>
