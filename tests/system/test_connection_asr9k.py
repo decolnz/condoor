@@ -140,7 +140,6 @@ class TestASR9KConnection(CondoorTestCase):
         conn.send("show user")
         conn.disconnect()
 
-
         conn.reconnect(self.logfile_condoor)
         conn.send("show user")
 

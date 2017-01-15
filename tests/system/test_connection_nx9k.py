@@ -14,7 +14,6 @@ class TestNX9KConnection(CondoorTestCase):
     def tearDown(self):
         pass
 
-
     def test_NX9K_1_discovery(self):
 
         remove_cache_file()
@@ -50,11 +49,15 @@ class TestNX9KConnection(CondoorTestCase):
         with self.assertRaises(condoor.ConnectionAuthenticationError):
             self.conn.connect(self.logfile_condoor)
 
+        self.conn.disconnect()
+
     def test_NX9K_3_connection_refused(self):
         urls = ["telnet://admin:admin@127.0.0.1:10023"]
         self.conn = condoor.Connection("host", urls, log_session=self.log_session, log_level=self.log_level)
         with self.assertRaises(condoor.ConnectionError):
             self.conn.connect(self.logfile_condoor)
+
+        self.conn.disconnect()
 
 
 if __name__ == '__main__':

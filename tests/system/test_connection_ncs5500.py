@@ -48,7 +48,7 @@ class TestNCS5500Connection(CondoorTestCase):
         with self.assertRaises(condoor.ConnectionAuthenticationError):
             self.conn.connect(self.logfile_condoor)
 
-        conn.disconnect()
+        self.conn.disconnect()
 
     def test_NCS5500_3_connection_refused(self):
         urls = ["telnet://admin:admin@127.0.0.1:10024"]
@@ -56,7 +56,7 @@ class TestNCS5500Connection(CondoorTestCase):
         with self.assertRaises(condoor.ConnectionError):
             self.conn.connect(self.logfile_condoor)
 
-        conn.disconnect()
+        self.conn.disconnect()
 
 
 if __name__ == '__main__':

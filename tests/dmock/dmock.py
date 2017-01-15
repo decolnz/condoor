@@ -3,7 +3,7 @@ import SocketServer
 import os
 
 
-class TelnetServer(SocketServer.TCPServer):
+class TelnetServer(SocketServer.ThreadingTCPServer):
     allow_reuse_address = True
 
 
@@ -353,6 +353,11 @@ class ASR901Handler(IOSXEHandler):
     authNeedUser = False
     PROMPT = "CSG-1202-ASR901>"
 
+
+def clean_up(server):
+    server.shutdown()
+    server.server_close()
+
 if __name__ == '__main__':
 
     from threading import Thread
@@ -361,9 +366,16 @@ if __name__ == '__main__':
     server_thread.daemon = True
     server_thread.start()
 
-    raw_input("Press Enter to continue...")
+    try:
 
-    server.shutdown()
-    server.server_close()
+        raw_input("Press Enter to continue...")
+    except KeyboardInterrupt:
+        pass
+
+    finally:
+        clean_up(server)
+
+
     server_thread.join()
+
 

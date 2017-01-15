@@ -2,6 +2,7 @@ import functools
 import os
 import sys
 from threading import Thread
+from multiprocessing import Process
 from tests.dmock.dmock import TelnetServer
 from unittest import TestCase
 
@@ -15,8 +16,17 @@ class StartTelnetSrv(object):
         @functools.wraps(fn)
         def decorated(obj, *args, **kwargs):
             obj.server = TelnetServer(("127.0.0.1", self.port), self.handler)
-            obj.server_thread = Thread(target=obj.server.serve_forever)
-            obj.server_thread.daemon = True
+
+            def server_run(server):
+                try:
+                    server.serve_forever()
+                except Exception as e:
+                    print("server_run")
+                    print(e)
+                    pass
+
+            obj.server_thread = Process(target=server_run, args=(obj.server, ))
+            obj.server_thread.daemon = False
             obj.server_thread.start()
             fn(obj, *args, **kwargs)
         return decorated
@@ -29,10 +39,38 @@ class StopTelnetSrv(object):
     def __call__(self, fn):
         @functools.wraps(fn)
         def decorated(obj, *args, **kwargs):
+
+            # print("Try server shutdown")
+            # try:
+            #     obj.server.shutdown()
+            # except Exception as e:
+            #     print("shutdown")
+            #     print e
+
+            print("Try server close")
             try:
                 obj.server.server_close()
-            except:
-                pass
+            except Exception as e:
+                print("server_close")
+                print e
+
+            # obj.server.socket.close()
+            #
+            #
+            # print("Try thread join")
+            # try:
+            #     obj.server_thread.join(10)
+            # except Exception as e:
+            #     print("thread")
+            #     print(e)
+
+            obj.server_thread.terminate()
+            obj.server_thread.join()
+
+
+
+            print("Stop done")
+
         return decorated
 
 

@@ -6,7 +6,7 @@ import condoor
 
 
 class TestASR920Connection(CondoorTestCase):
-    @StartTelnetSrv(ASR920Handler, 10025)
+    @StartTelnetSrv(ASR920Handler, 10027)
     def setUp(self):
         CondoorTestCase.setUp(self)
 
@@ -19,7 +19,7 @@ class TestASR920Connection(CondoorTestCase):
 
         remove_cache_file()
 
-        urls = ["telnet://admin:admin@127.0.0.1:10025/admin"]
+        urls = ["telnet://admin:admin@127.0.0.1:10027/admin"]
         conn = condoor.Connection("host", urls, log_session=self.log_session, log_level=self.log_level)
         self.conn = conn
         conn.connect(self.logfile_condoor)
@@ -44,7 +44,7 @@ class TestASR920Connection(CondoorTestCase):
 
     def test_ASR920_2_discovery(self):
         """ASR920: Test whether the cached information is used"""
-        urls = ["telnet://admin:admin@127.0.0.1:10025/admin"]
+        urls = ["telnet://admin:admin@127.0.0.1:10027/admin"]
         conn = condoor.Connection("host", urls, log_session=self.log_session, log_level=self.log_level)
         self.conn = conn
         conn.connect(self.logfile_condoor)
@@ -69,7 +69,7 @@ class TestASR920Connection(CondoorTestCase):
 
     def test_ASR920_3_connection_wrong_password(self):
         """ASR920: Test wrong password"""
-        urls = ["telnet://:password@127.0.0.1:10025/admin"]
+        urls = ["telnet://:password@127.0.0.1:10027/admin"]
         self.conn = condoor.Connection("host", urls, log_session=self.log_session, log_level=self.log_level)
 
         with self.assertRaises(condoor.ConnectionAuthenticationError):
@@ -78,7 +78,7 @@ class TestASR920Connection(CondoorTestCase):
 
     def test_ASR920_4_connection_wrong_enable_password(self):
         """ASR920: Test wrong enable password"""
-        urls = ["telnet://:password@127.0.0.1:10025/admin"]
+        urls = ["telnet://:password@127.0.0.1:10027/admin"]
         self.conn = condoor.Connection("host", urls, log_session=self.log_session, log_level=self.log_level)
 
         with self.assertRaises(condoor.ConnectionAuthenticationError):
