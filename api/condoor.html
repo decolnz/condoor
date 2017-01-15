@@ -280,13 +280,11 @@ It the parameter is not passed then the default <em>session.log</em> file is cre
 <dd><p>Send the command to the device and return the output.</p>
 <dl class="docutils">
 <dt>Args:</dt>
-<dd><p class="first">cmd (str): Command string for execution. Defaults to empty string.
+<dd>cmd (str): Command string for execution. Defaults to empty string.
 timeout (int): Timeout in seconds. Defaults to 60s
-wait_for_string (str): This is optional string that driver</p>
-<blockquote class="last">
-<div>waits for after command execution. If none the detected
-prompt will be used.</div></blockquote>
-</dd>
+wait_for_string (str): This is optional string that driver
+waits for after command execution. If none the detected
+prompt will be used.</dd>
 <dt>Returns:</dt>
 <dd>A string containing the command output.</dd>
 <dt>Raises:</dt>
