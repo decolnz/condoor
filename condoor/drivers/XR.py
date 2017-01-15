@@ -33,7 +33,6 @@ class Driver(Generic):
 
     def reload(self, reload_timeout, save_config):
         """Reload the device."""
-
         PROCEED = re.compile(re.escape("Proceed with reload? [confirm]"))
         DONE = re.compile(re.escape("[Done]"))
         CONFIGURATION_COMPLETED = re.compile("SYSTEM CONFIGURATION COMPLETED")

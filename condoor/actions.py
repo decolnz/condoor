@@ -21,7 +21,6 @@ def a_send(text, ctx):
 @action
 def a_send_username(username, ctx):
     """Sent the username text."""
-
     if username:
         ctx.ctrl.sendline(username)
         return True
@@ -120,7 +119,7 @@ def a_unexpected_prompt(ctx):
 
 @action
 def a_connection_timeout(ctx):
-    """Checks the prompt and update the drivers."""
+    """Check the prompt and update the drivers."""
     prompt = ctx.ctrl.after
     ctx.msg = "Received the jump host prompt: '{}'".format(prompt)
     print(ctx.msg)

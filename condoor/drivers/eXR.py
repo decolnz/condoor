@@ -112,7 +112,7 @@ class Driver(Generic):
         return fsm.run()
 
     def reload(self, reload_timeout, save_config):
-
+        """Reload the device."""
         RELOAD_PROMPT = re.compile(re.escape("Reload hardware module ? [no,yes]"))
         START_TO_BACKUP = re.compile("Status report.*START TO BACKUP")
         BACKUP_HAS_COMPLETED_SUCCESSFULLY = re.compile("Status report.*BACKUP HAS COMPLETED SUCCESSFULLY")

@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+"""The condoor command line implementation."""
 
 try:
     import click
@@ -13,8 +14,9 @@ import condoor
 
 
 def echo_info(conn):
+    """Print detected information."""
     click.echo("General information:")
-    click.echo(" Hostname: ".format(conn.hostname))
+    click.echo(" Hostname: {}".format(conn.hostname))
     click.echo(" HW Family: {}".format(conn.family))
     click.echo(" HW Platform: {}".format(conn.platform))
     click.echo(" SW Type: {}".format(conn.os_type))
@@ -31,9 +33,12 @@ def echo_info(conn):
 
 
 class URL(click.ParamType):
+    """URL type validator."""
+
     name = 'url'
 
     def convert(self, value, param, ctx):
+        """Convert to URL scheme."""
         if not isinstance(value, tuple):
             parsed = urlparse.urlparse(value)
             if parsed.scheme not in ('telnet', 'ssh'):
@@ -70,7 +75,7 @@ log_levels = {
 @click.option("--print-info", is_flag=True,
               help="Print the discovered information.")
 def run(url, cmd, log_path, log_level, log_session, force_discovery, print_info):
-
+    """Main function."""
     log_level = log_levels[log_level]
     conn = condoor.Connection("host", list(url), log_session=log_session, log_level=log_level, log_dir=log_path)
     try:
@@ -92,4 +97,4 @@ def run(url, cmd, log_path, log_level, log_session, force_discovery, print_info)
 
 
 if __name__ == '__main__':
-    run()
+    run()  # pylint: disable=no-value-for-parameter

@@ -16,12 +16,13 @@ class Protocol(object):
         self.username = self.device.node_info.username
 
         self.last_pattern = None
+        self.matched_string = None
 
-    def connect(self, device):
+    def connect(self, driver):
         """Connect using specific protocol."""
         raise NotImplementedError("Connection method not implemented")
 
-    def authenticate(self, device):
+    def authenticate(self, driver):
         """Authenticate using specific protocol."""
         raise NotImplementedError("Authentication method not implemented")
 
@@ -31,6 +32,7 @@ class Protocol(object):
 
     @property
     def hostname(self):
+        """Return hostname from url."""
         return self.device.node_info.hostname
 
     def _acquire_password(self):

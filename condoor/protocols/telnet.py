@@ -98,11 +98,11 @@ class Telnet(Protocol):
                   init_pattern=self.last_pattern)
         return fsm.run()
 
-    def disconnect(self, driver):
+    def disconnect(self, device):
         """Disconnect using protocol specific method."""
         # self.device.ctrl.sendcontrol(']')
         # self.device.ctrl.sendline('quit')
-        # self.device.send(chr(4))
+        self.device.ctrl.send(chr(4))
 
 
 class TelnetConsole(Telnet):
@@ -142,9 +142,13 @@ class TelnetConsole(Telnet):
         return fsm.run()
 
     def disconnect(self, driver):
+        """Disconnect from the console."""
         while self.device.mode != 'global':
             self.device.send('exit')
 
         self.device.send('exit', wait_for_string=driver.press_return_re)
-        self.device.ctrl.sendcontrol(']')
-        self.device.ctrl.sendline('quit')
+
+        self.device.ctrl.send(chr(4))
+
+        # self.device.ctrl.sendcontrol(']')
+        # self.device.ctrl.sendline('quit')

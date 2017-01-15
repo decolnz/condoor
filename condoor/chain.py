@@ -116,6 +116,7 @@ class Chain(object):
         return prompts
 
     def get_device_index_based_on_prompt(self, prompt):
+        """Return the device index in the chain based on prompt."""
         conn_info = ""
         for device in self.devices:
             conn_info += str(device) + "->"
@@ -126,6 +127,7 @@ class Chain(object):
             return None
 
     def tail_disconnect(self, index):
+        """Mark all devices disconnected except target in the chain."""
         try:
             for device in self.devices[index + 1:]:
                 device.connected = False

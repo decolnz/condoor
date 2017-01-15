@@ -7,7 +7,7 @@ logger = logging.getLogger(__name__)
 
 
 class Driver(XR):
-    """This is a Driver class implementation for IOS XRv"""
+    """This is a Driver class implementation for IOS XRv."""
 
     platform = 'XRv'
     inventory_cmd = 'admin show inventory chassis'

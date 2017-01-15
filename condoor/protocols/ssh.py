@@ -99,9 +99,10 @@ class SSH(Protocol):
         fsm = FSM("SSH-AUTH", self.device, events, transitions, init_pattern=self.last_pattern, timeout=30)
         return fsm.run()
 
-    def disconnect(self):
+    def disconnect(self, driver):
         """Disconnect using the protocol specific method."""
         self.device.sendline('\x03')
+        self.device.sendline('\x04')
 
     # FIXME: This needs to be fixed and tested
     @action

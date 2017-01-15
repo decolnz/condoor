@@ -119,6 +119,14 @@ class Device(object):
                 self.ctrl.try_read_prompt(1)
                 if not self.prompt:
                     self.prompt = self.ctrl.detect_prompt()
+
+                if self.is_target:
+                    self.update_config_mode()
+                    if self.mode is not None and self.mode != 'global':
+                        self.last_error_msg = "Device is not in global mode. Disconnected."
+                        self.chain.disconnect()
+                        return False
+
                 self.prompt_re = self.driver.make_dynamic_prompt(self.prompt)
                 self.connected = True
 
@@ -176,8 +184,12 @@ class Device(object):
 
     def disconnect(self):
         """Disconnect the device."""
-        self.protocol.disconnect(self.driver)
-        self.protocol = None
+        if self.connected:
+            if self.protocol:
+                self.protocol.disconnect(self.driver)
+                self.protocol = None
+            if self.ctrl:
+                self.ctrl = None
 
     def send(self, cmd="", timeout=60, wait_for_string=None):
         """Send the command to the device and return the output.
@@ -355,10 +367,13 @@ class Device(object):
         # TODO: Maybe validate if udi is complete
         self.udi = parse_inventory(self.inventory_text)
 
-    def update_config_mode(self):
+    def update_config_mode(self, prompt=None):
         """Update config mode."""
         # TODO: Fix the conflict with config mode attribute at connection
-        self.mode = self.driver.update_config_mode(self.prompt)
+        if prompt:
+            self.mode = self.driver.update_config_mode(prompt)
+        else:
+            self.mode = self.driver.update_config_mode(self.prompt)
 
     def update_hostname(self):
         """Update hostname."""
@@ -411,7 +426,6 @@ class Device(object):
 
     def after_connect(self):
         """Execute right after connect."""
-        # TODO: Check if still in use
         return self.driver.after_connect()
 
     def enable(self, enable_password):
