@@ -45,14 +45,14 @@ class StopTelnetSrv(object):
             #     obj.server.shutdown()
             # except Exception as e:
             #     print("shutdown")
-            #     print e
+            #     print(e)
 
             print("Try server close")
             try:
                 obj.server.server_close()
             except Exception as e:
                 print("server_close")
-                print e
+                print(e)
 
             # obj.server.socket.close()
             #
