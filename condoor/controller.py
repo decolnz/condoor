@@ -55,7 +55,7 @@ class Controller(object):
                     maxread=50000,
                     searchwindowsize=None,
                     env={"TERM": "VT100"},  # to avoid color control characters
-                    echo=True  # KEEP YOUR DIRTY HANDS OFF FROM ECHO!
+                    echo=False  # KEEP YOUR DIRTY HANDS OFF FROM ECHO!
                 )
                 self._session.delaybeforesend = 0.3
                 rows, cols = self._session.getwinsize()
@@ -77,11 +77,9 @@ class Controller(object):
 
     def send_command(self, cmd):
         """Send command."""
-        self.setecho(False)  # pylint: disable=no-member
         self.send(cmd)  # pylint: disable=no-member
         self.expect_exact([cmd, pexpect.TIMEOUT], timeout=15)  # pylint: disable=no-member
         self.sendline()  # pylint: disable=no-member
-        self.setecho(True)  # pylint: disable=no-member
 
     def disconnect(self):
         """Disconnect the controller."""
