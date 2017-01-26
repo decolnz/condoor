@@ -52,8 +52,8 @@ class Controller(object):
             try:
                 self._session = pexpect.spawn(
                     command,
-                    maxread=50000,
-                    searchwindowsize=None,
+                    maxread=65536,
+                    searchwindowsize=4000,
                     env={"TERM": "VT100"},  # to avoid color control characters
                     echo=False  # KEEP YOUR DIRTY HANDS OFF FROM ECHO!
                 )

@@ -15,3 +15,4 @@ deploy:
     tags: true
     distributions: sdist bdist_wheel
     repo: kstaniek/condoor
+  skip_upload_docs: true
