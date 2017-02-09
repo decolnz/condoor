@@ -191,7 +191,7 @@ class TestURLParse(TestCase):
 
     def test_url_telnet_no_user_password_and_enable_not_quoted(self):
         password = """\|;':"!@#$%^&*()+{}:"<>?`,<>~./1234567890zxcvbnmasdfghjklqwertyuiopZXCVBNMASDFGHJKLQWERTYUIOP"""
-        url = "telnet://1.1.1.1:2048/{password}".format(password=password)
+        url = "telnet://1.1.1.1:2048/?enable_password={password}".format(password=password)
         hop_info = make_hop_info_from_url(url)
 
         self.assertEqual(hop_info.protocol, "telnet")
@@ -204,7 +204,7 @@ class TestURLParse(TestCase):
     def test_url_telnet_no_user_password_and_enable_quoted(self):
         password = """\|;':"!@#$%^&*()+{}:"<>?`,<>~./1234567890zxcvbnmasdfghjklqwertyuiopZXCVBNMASDFGHJKLQWERTYUIOP"""
         password_q = quote(password, safe="")
-        url = "telnet://1.1.1.1:2048/{password}".format(password=password_q)
+        url = "telnet://1.1.1.1:2048/?enable_password={password}".format(password=password_q)
         hop_info = make_hop_info_from_url(url)
 
         self.assertEqual(hop_info.protocol, "telnet")
@@ -215,7 +215,7 @@ class TestURLParse(TestCase):
         self.assertEqual(hop_info.enable_password, password)
 
     def test_url_telnet_no_user_password_and_enable_no_port_not_quoted(self):
-        url = "telnet://1.1.1.1/!@#$%^&*()1/2345678asdfgh"
+        url = "telnet://1.1.1.1/?enable_password=!@#$%^&*()1/2345678asdfgh"
         hop_info = make_hop_info_from_url(url)
 
         self.assertEqual(hop_info.protocol, "telnet")
@@ -228,7 +228,7 @@ class TestURLParse(TestCase):
     def test_url_telnet_no_user_password_and_enable_no_port_quoted(self):
         password = """\|;':"!@#$%^&*()+{}:"<>?`,<>~./1234567890zxcvbnmasdfghjklqwertyuiopZXCVBNMASDFGHJKLQWERTYUIOP"""
         password_q = quote(password, safe="")
-        url = "telnet://1.1.1.1/{password}".format(password=password_q)
+        url = "telnet://1.1.1.1/?enable_password={password}".format(password=password_q)
         hop_info = make_hop_info_from_url(url)
 
         self.assertEqual(hop_info.protocol, "telnet")

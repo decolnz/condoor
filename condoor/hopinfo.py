@@ -1,6 +1,6 @@
 """Provides HopInfo class implementation and factory function."""
 
-from urlparse import urlparse
+from urlparse import urlparse, parse_qs
 from urllib import unquote
 
 from condoor.exceptions import InvalidHopInfoError
@@ -43,13 +43,18 @@ def make_hop_info_from_url(url, verify_reachability=None):
     username = None if parsed.username is None else unquote(parsed.username)  # It's None if not exists
     password = None if parsed.password is None else unquote(parsed.password)  # It's None if not exists
 
+    try:
+        enable_password = parse_qs(parsed.query)["enable_password"][0]
+    except KeyError:
+        enable_password = None
+
     hop_info = HopInfo(
         parsed.scheme,
         parsed.hostname,
         username,
         password,
         parsed.port,
-        unquote(parsed.path[1:]),  # first char is '/'. It's empty if not exists in url
+        enable_password,
         verify_reachability=verify_reachability
     )
     if hop_info.is_valid():
