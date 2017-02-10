@@ -19,7 +19,7 @@ class TestASR901Connection(CondoorTestCase):
 
         remove_cache_file()
 
-        urls = ["telnet://admin:admin@127.0.0.1:10025/admin"]
+        urls = ["telnet://admin:admin@127.0.0.1:10025/?enable_password=admin"]
         conn = condoor.Connection("host", urls, log_session=self.log_session, log_level=self.log_level)
         self.conn = conn
         conn.connect(self.logfile_condoor)
@@ -44,7 +44,7 @@ class TestASR901Connection(CondoorTestCase):
 
     def test_ASR901_2_discovery(self):
         """ASR901: Test whether the cached information is used"""
-        urls = ["telnet://admin:admin@127.0.0.1:10025/admin"]
+        urls = ["telnet://admin:admin@127.0.0.1:10025/?enable_password=admin"]
         conn = condoor.Connection("host", urls, log_session=self.log_session, log_level=self.log_level)
         self.conn = conn
         conn.connect(self.logfile_condoor)
@@ -69,7 +69,7 @@ class TestASR901Connection(CondoorTestCase):
 
     def test_ASR901_3_connection_wrong_password(self):
         """ASR901: Test wrong password"""
-        urls = ["telnet://:password@127.0.0.1:10025/admin"]
+        urls = ["telnet://:password@127.0.0.1:10025/?enable_password=admin"]
         self.conn = condoor.Connection("host", urls, log_session=self.log_session, log_level=self.log_level)
 
         with self.assertRaises(condoor.ConnectionAuthenticationError):
@@ -79,7 +79,7 @@ class TestASR901Connection(CondoorTestCase):
 
     def test_ASR901_4_connection_wrong_enable_password(self):
         """ASR901: Test wrong enable password"""
-        urls = ["telnet://admin:admin@127.0.0.1:10025/wrongpass"]
+        urls = ["telnet://admin:admin@127.0.0.1:10025/?enable_password=wrongpass"]
         self.conn = condoor.Connection("host", urls, log_session=self.log_session, log_level=self.log_level)
 
         with self.assertRaises(condoor.ConnectionAuthenticationError):

@@ -27,6 +27,7 @@
 # =============================================================================
 
 from unittest import TestCase
+from urllib import quote
 
 from condoor.hopinfo import make_hop_info_from_url
 
@@ -39,6 +40,21 @@ class TestURLParse(TestCase):
         self.assertEqual(hop_info.protocol, "telnet")
         self.assertEqual(hop_info.username, "user")
         self.assertEqual(hop_info.password, "pass")
+        self.assertEqual(hop_info.hostname, "1.1.1.1")
+        self.assertEqual(hop_info.port, 23)
+
+    def test_url_telnet_complex_user_pass(self):
+        username = """\|;':"!@#$%^&*()+{}:"<>?`,<>~./1234567890zxcvbnmasdfghjklqwertyuiopZXCVBNMASDFGHJKLQWERTYUIOP"""
+        password = """\|;':"!@#$%^&*()+{}:"<>?`,<>~./1234567890zxcvbnmasdfghjklqwertyuiopZXCVBNMASDFGHJKLQWERTYUIOP"""
+
+        username_q = quote(username, safe="")
+        password_q = quote(password, safe="")
+        url = "telnet://{username}:{password}@1.1.1.1".format(username=username_q, password=password_q)
+        hop_info = make_hop_info_from_url(url)
+
+        self.assertEqual(hop_info.protocol, "telnet")
+        self.assertEqual(hop_info.username, username)
+        self.assertEqual(hop_info.password, password)
         self.assertEqual(hop_info.hostname, "1.1.1.1")
         self.assertEqual(hop_info.port, 23)
 
@@ -173,8 +189,9 @@ class TestURLParse(TestCase):
         self.assertEqual(hop_info.port, 2048)
         self.assertEqual(hop_info.enable_password, None)
 
-    def test_url_telnet_no_user_password_and_enable(self):
-        url = "telnet://1.1.1.1:2048/!@#$%^&*()1/2345678asdfgh"
+    def test_url_telnet_no_user_password_and_enable_not_quoted(self):
+        password = """\|;':"!@#$%^&*()+{}:"<>?`,<>~./1234567890zxcvbnmasdfghjklqwertyuiopZXCVBNMASDFGHJKLQWERTYUIOP"""
+        url = "telnet://1.1.1.1:2048/?enable_password={password}".format(password=password)
         hop_info = make_hop_info_from_url(url)
 
         self.assertEqual(hop_info.protocol, "telnet")
@@ -182,10 +199,23 @@ class TestURLParse(TestCase):
         self.assertEqual(hop_info.password, None)
         self.assertEqual(hop_info.hostname, "1.1.1.1")
         self.assertEqual(hop_info.port, 2048)
-        self.assertEqual(hop_info.enable_password, "!@#$%^&*()1/2345678asdfgh")
+        self.assertNotEqual(hop_info.enable_password, "!@#$%^&*()1/2345678asdfgh")
 
-    def test_url_telnet_no_user_password_and_enable_no_port(self):
-        url = "telnet://1.1.1.1/!@#$%^&*()1/2345678asdfgh"
+    def test_url_telnet_no_user_password_and_enable_quoted(self):
+        password = """\|;':"!@#$%^&*()+{}:"<>?`,<>~./1234567890zxcvbnmasdfghjklqwertyuiopZXCVBNMASDFGHJKLQWERTYUIOP"""
+        password_q = quote(password, safe="")
+        url = "telnet://1.1.1.1:2048/?enable_password={password}".format(password=password_q)
+        hop_info = make_hop_info_from_url(url)
+
+        self.assertEqual(hop_info.protocol, "telnet")
+        self.assertEqual(hop_info.username, None)
+        self.assertEqual(hop_info.password, None)
+        self.assertEqual(hop_info.hostname, "1.1.1.1")
+        self.assertEqual(hop_info.port, 2048)
+        self.assertEqual(hop_info.enable_password, password)
+
+    def test_url_telnet_no_user_password_and_enable_no_port_not_quoted(self):
+        url = "telnet://1.1.1.1/?enable_password=!@#$%^&*()1/2345678asdfgh"
         hop_info = make_hop_info_from_url(url)
 
         self.assertEqual(hop_info.protocol, "telnet")
@@ -193,4 +223,17 @@ class TestURLParse(TestCase):
         self.assertEqual(hop_info.password, None)
         self.assertEqual(hop_info.hostname, "1.1.1.1")
         self.assertEqual(hop_info.port, 23)
-        self.assertEqual(hop_info.enable_password, "!@#$%^&*()1/2345678asdfgh")
+        self.assertNotEqual(hop_info.enable_password, "!@#$%^&*()1/2345678asdfgh")
+
+    def test_url_telnet_no_user_password_and_enable_no_port_quoted(self):
+        password = """\|;':"!@#$%^&*()+{}:"<>?`,<>~./1234567890zxcvbnmasdfghjklqwertyuiopZXCVBNMASDFGHJKLQWERTYUIOP"""
+        password_q = quote(password, safe="")
+        url = "telnet://1.1.1.1/?enable_password={password}".format(password=password_q)
+        hop_info = make_hop_info_from_url(url)
+
+        self.assertEqual(hop_info.protocol, "telnet")
+        self.assertEqual(hop_info.username, None)
+        self.assertEqual(hop_info.password, None)
+        self.assertEqual(hop_info.hostname, "1.1.1.1")
+        self.assertEqual(hop_info.port, 23)
+        self.assertEqual(hop_info.enable_password, password)

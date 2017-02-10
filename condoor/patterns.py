@@ -31,17 +31,17 @@ class PatternManager(object):
 
                     if isinstance(pattern, str):
                         text_pattern = pattern
-                        compiled_pattern = re.compile(text_pattern)
+                        compiled_pattern = re.compile(text_pattern, re.MULTILINE)
                         description_pattern = key
 
                     elif isinstance(pattern, dict):
                         text_pattern = pattern['pattern']
-                        compiled_pattern = re.compile(text_pattern)
+                        compiled_pattern = re.compile(text_pattern, re.MULTILINE)
                         description_pattern = pattern['description']
 
                     elif isinstance(pattern, list):
                         text_pattern = self._concatenate_patterns(key, pattern)
-                        compiled_pattern = re.compile(text_pattern)
+                        compiled_pattern = re.compile(text_pattern, re.MULTILINE)
                         description_pattern = key
 
                     dict_text[platform][key] = text_pattern

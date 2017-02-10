@@ -1,7 +1,7 @@
 """Provides HopInfo class implementation and factory function."""
 
-import re
-from urlparse import urlparse
+from urlparse import urlparse, parse_qs
+from urllib import unquote
 
 from condoor.exceptions import InvalidHopInfoError
 
@@ -40,17 +40,19 @@ def make_hop_info_from_url(url, verify_reachability=None):
 
     """
     parsed = urlparse(url)
+    username = None if parsed.username is None else unquote(parsed.username)  # It's None if not exists
+    password = None if parsed.password is None else unquote(parsed.password)  # It's None if not exists
+
     try:
-        # search for anything which is after the netloc/
-        enable_password = re.search(re.compile(parsed.netloc + "/(.*)"), url).group(1)
-    except AttributeError:  # not found
+        enable_password = parse_qs(parsed.query)["enable_password"][0]
+    except KeyError:
         enable_password = None
 
     hop_info = HopInfo(
         parsed.scheme,
         parsed.hostname,
-        parsed.username,
-        parsed.password,
+        username,
+        password,
         parsed.port,
         enable_password,
         verify_reachability=verify_reachability
